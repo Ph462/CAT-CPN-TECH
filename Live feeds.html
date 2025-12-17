@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAT CPN | Modern Social Feed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #adb5bd;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+        
+        body {
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            color: var(--accent);
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            padding: 10px 20px;
+            width: 300px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            margin-left: 10px;
+            outline: none;
+        }
+        
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notification {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent);
+            border-radius: 50%;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            flex: 0 0 250px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 6px 16px var(--shadow);
+            height: fit-content;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--dark);
+            text-decoration: none;
+            padding: 12px 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: #f0f2ff;
+            color: var(--primary);
+        }
+        
+        .sidebar-menu i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Feeds Section */
+        .feeds-section {
+            flex: 1;
+        }
+        
+        /* Create Post */
+        .create-post {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+        
+        .post-input {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .post-input textarea {
+            flex: 1;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            resize: none;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        .post-input textarea:focus {
+            border-color: var(--primary);
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .action-icons {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .action-icons i {
+            color: var(--gray);
+            cursor: pointer;
+            transition: color 0.3s;
+            font-size: 1.2rem;
+        }
+        
+        .action-icons i:hover {
+            color: var(--primary);
+        }
+        
+        .post-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .post-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        /* Feed Items */
+        .feed-item {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 16px var(--shadow);
+            transition: transform 0.3s;
+        }
+        
+        .feed-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-details h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .user-details p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .feed-content {
+            margin-bottom: 20px;
+        }
+        
+        .feed-content p {
+            margin-bottom: 15px;
+        }
+        
+        .feed-image {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 400px;
+        }
+        
+        .feed-image img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .feed-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-top: 1px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 15px;
+        }
+        
+        .feed-actions {
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--dark);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        .action-btn:hover {
+            background-color: #f0f2ff;
+        }
+        
+        .action-btn.liked {
+            color: var(--accent);
+        }
+        
+        /* Trending Section */
+        .trending-section {
+            flex: 0 0 300px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 6px 16px var(--shadow);
+            height: fit-content;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .trending-list {
+            list-style: none;
+        }
+        
+        .trending-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+        
+        .trending-number {
+            background-color: #f0f2ff;
+            color: var(--primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .trending-content h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        
+        .trending-content p {
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar, .trending-section {
+                flex: 1;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .search-bar {
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .post-actions {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .action-icons {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .feed-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .feed-actions {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-bolt"></i>
+                    <span>SparkFeed</span>
+                </div>
+                
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search posts, people, or topics...">
+                </div>
+                
+                <div class="user-actions">
+                    <div class="notification">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <div class="notification-dot"></div>
+                    </div>
+                    <div class="user-avatar">
+                        <img src="https://pikaso.cdnpk.net/private/production/2877050063/upload.png?preview=true&token=exp=1766066939~hmac=7071340e1e99dc133bfd60ce3d319fc7009972167dff7b8dd30a274a9da648f5&size=300" alt="User Avatar">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <ul class="sidebar-menu">
+                    <li><a href="#" class="active"><i class="fas fa-home"></i> Home Feed</a></li>
+                    <li><a href="#"><i class="fas fa-fire"></i> Trending</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> Communities</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Bookmarks</a></li>
+                    <li><a href="#"><i class="fas fa-user-friends"></i> Friends</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </aside>
+            
+            <!-- Feeds Section -->
+            <main class="feeds-section">
+                <!-- Create Post -->
+                <section class="create-post">
+                    <div class="post-input">
+                        <div class="user-avatar">
+                            <img src="https://pikaso.cdnpk.net/private/production/2877050063/upload.png?preview=true&token=exp=1766066939~hmac=7071340e1e99dc133bfd60ce3d319fc7009972167dff7b8dd30a274a9da648f5&size=300" alt="User Avatar">
+                        </div>
+                        <textarea placeholder="What's on your mind today?"></textarea>
+                    </div>
+                    
+                    <div class="post-actions">
+                        <div class="action-icons">
+                            <i class="fas fa-image" title="Add photo"></i>
+                            <i class="fas fa-video" title="Add video"></i>
+                            <i class="fas fa-map-marker-alt" title="Add location"></i>
+                            <i class="fas fa-smile" title="Add emoji"></i>
+                        </div>
+                        <button class="post-btn">Post</button>
+                    </div>
+                </section>
+                
+                <!-- Feed Items -->
+                <article class="feed-item">
+                    <div class="feed-header">
+                        <div class="user-info">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="User Avatar">
+                            <div class="user-details">
+                                <h3>Alex Morgan</h3>
+                                <p>Designer • 2 hours ago</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-ellipsis-h"></i>
+                    </div>
+                    
+                    <div class="feed-content">
+                        <p>Just finished working on this beautiful sunset illustration. Sometimes nature is the best inspiration for design work! What do you think? 🎨</p>
+                        <div class="feed-image">
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Sunset illustration">
+                        </div>
+                    </div>
+                    
+                    <div class="feed-stats">
+                        <div><i class="fas fa-heart"></i> 124 likes</div>
+                        <div>24 comments</div>
+                        <div>8 shares</div>
+                    </div>
+                    
+                    <div class="feed-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i> Like
+                        </button>
+                        <button class="action-btn">
+                            <i class="far fa-comment"></i> Comment
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                    </div>
+                </article>
+                
+                <article class="feed-item">
+                    <div class="feed-header">
+                        <div class="user-info">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="User Avatar">
+                            <div class="user-details">
+                                <h3>Taylor Kim</h3>
+                                <p>Tech Enthusiast • 5 hours ago</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-ellipsis-h"></i>
+                    </div>
+                    
+                    <div class="feed-content">
+                        <p>Just read about the new advancements in AI-assisted coding tools. It's amazing how much these tools can boost productivity while still requiring human creativity for the truly complex problems.</p>
+                        <p>What's your experience with AI coding assistants? Are they helpful or do they sometimes get in the way?</p>
+                    </div>
+                    
+                    <div class="feed-stats">
+                        <div><i class="fas fa-heart"></i> 89 likes</div>
+                        <div>42 comments</div>
+                        <div>5 shares</div>
+                    </div>
+                    
+                    <div class="feed-actions">
+                        <button class="action-btn like-btn">
+                            <i class="far fa-heart"></i> Like
+                        </button>
+                        <button class="action-btn">
+                            <i class="far fa-comment"></i> Comment
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                    </div>
+                </article>
+            </main>
+            
+            <!-- Trending Section -->
+            <aside class="trending-section">
+                <h2 class="section-title">
+                    <i class="fas fa-hashtag"></i> Trending Now
+                </h2>
+                
+                <ul class="trending-list">
+                    <li class="trending-item">
+                        <div class="trending-number">1</div>
+                        <div class="trending-content">
+                            <h4>Web Design Trends</h4>
+                            <p>2,340 posts</p>
+                        </div>
+                    </li>
+                    <li class="trending-item">
+                        <div class="trending-number">2</div>
+                        <div class="trending-content">
+                            <h4>Remote Work Life</h4>
+                            <p>1,850 posts</p>
+                        </div>
+                    </li>
+                    <li class="trending-item">
+                        <div class="trending-number">3</div>
+                        <div class="trending-content">
+                            <h4>AI Innovations</h4>
+                            <p>1,720 posts</p>
+                        </div>
+                    </li>
+                    <li class="trending-item">
+                        <div class="trending-number">4</div>
+                        <div class="trending-content">
+                            <h4>Healthy Living</h4>
+                            <p>1,540 posts</p>
+                        </div>
+                    </li>
+                    <li class="trending-item">
+                        <div class="trending-number">5</div>
+                        <div class="trending-content">
+                            <h4>Travel Stories</h4>
+                            <p>1,210 posts</p>
+                        </div>
+                    </li>
+                </ul>
+            </aside>
+        </div>
+        
+        <!-- Footer -->
+        <footer>
+            <p>SparkFeed &copy; 2023 • Connecting people through shared experiences</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://fydddizpiycxwugpofta.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5ZGRkaXpwaXljeHd1Z3BvZnRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5Nzc3MzUsImV4cCI6MjA4MTU1MzczNX0.iiTTKUSuVZ7l8EVR06OxcXnNYdHCj_eVMwQKdpJkk6I';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Test Supabase connection
+        async function testSupabaseConnection() {
+            try {
+                const { data, error } = await supabase.from('posts').select('*').limit(1);
+                if (error) {
+                    console.log('Supabase connection test failed:', error.message);
+                } else {
+                    console.log('Supabase connected successfully!');
+                    console.log('Sample data:', data);
+                }
+            } catch (error) {
+                console.log('Error connecting to Supabase:', error);
+            }
+        }
+        
+        // Call the test function on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            testSupabaseConnection();
+            
+            // Example: Function to save a post to Supabase
+            window.savePostToSupabase = async function(postContent, userId) {
+                try {
+                    const { data, error } = await supabase
+                        .from('posts')
+                        .insert([
+                            { 
+                                content: postContent, 
+                                user_id: userId,
+                                created_at: new Date().toISOString()
+                            }
+                        ]);
+                    
+                    if (error) throw error;
+                    console.log('Post saved to Supabase:', data);
+                    return data;
+                } catch (error) {
+                    console.error('Error saving post:', error);
+                    return null;
+                }
+            };
+            
+            // Example: Function to fetch posts from Supabase
+            window.fetchPostsFromSupabase = async function() {
+                try {
+                    const { data, error } = await supabase
+                        .from('posts')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    console.log('Posts fetched from Supabase:', data);
+                    return data;
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                    return [];
+                }
+            };
+        });
+        
+        // Like button functionality
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                if (icon.classList.contains('far')) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'liked');
+                    this.classList.add('liked');
+                } else {
+                    icon.classList.remove('fas', 'liked');
+                    icon.classList.add('far');
+                    this.classList.remove('liked');
+                }
+            });
+        });
+        
+        // Post button functionality
+        const postBtn = document.querySelector('.post-btn');
+        const postTextarea = document.querySelector('.post-input textarea');
+        
+        postBtn.addEventListener('click', async function() {
+            const postContent = postTextarea.value.trim();
+            
+            if (postContent) {
+                // In a real app, you would send this to Supabase
+                alert('Post published: ' + postContent);
+                
+                // Example of saving to Supabase (commented out for now)
+                // await savePostToSupabase(postContent, 'current-user-id');
+                
+                postTextarea.value = '';
+                
+                // Here you would typically add the new post to the feed
+            } else {
+                alert('Please write something before posting!');
+            }
+        });
+        
+        // Simple search functionality
+        const searchInput = document.querySelector('.search-bar input');
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                const searchTerm = this.value.trim();
+                if (searchTerm) {
+                    alert(`Searching for: ${searchTerm}`);
+                    // In a real app, you would filter posts or redirect to search results
+                }
+            }
+        });
+    </script>
+</body>
+</html>
